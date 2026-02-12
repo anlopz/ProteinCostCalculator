@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protein Value</title>
+
+<style>
+body {
+    font-family: -apple-system, Arial, sans-serif;
+    background: #111;
+    color: white;
+    padding: 20px;
+}
+h1 { text-align: center; }
+
+input, button {
+    width: 100%;
+    padding: 12px;
+    margin: 6px 0;
+    border-radius: 8px;
+    border: none;
+    font-size: 16px;
+}
+
+button {
+    background: #2ecc71;
+    color: white;
+    font-weight: bold;
+}
+
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+td, th {
+    padding: 10px;
+    border-bottom: 1px solid #333;
+    text-align: left;
+}
+
+.cheapest {
+    color: #2ecc71;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Protein Value</h1>
+
+<input id="food" placeholder="Food name">
+<input id="portionSize" type="number" value="100" placeholder="Portion size (g)">
+<input id="proteinPerPortion" type="number" placeholder="Protein per portion (g)">
+<input id="packageSize" type="number" placeholder="Package size (g)">
+<input id="price" type="number" placeholder="Package price (MXN)">
+
+<button onclick="addFood()">Add Food</button>
+
+<table>
+<thead>
+<tr>
+<th>Food</th>
+<th>Total Protein</th>
+<th>Cost / g</th>
+</tr>
+</thead>
+<tbody id="list"></tbody>
+</table>
+
+<script>
+let foods = JSON.parse(localStorage.getItem("foods")) || [];
+
+function save() {
+    localStorage.setItem("foods", JSON.stringify(foods));
+}
+
+function addFood() {
+    const food = document.getElementById("food").value;
+    const portionSize = parseFloat(document.getElementById("portionSize").value);
+    const proteinPerPortion = parseFloat(document.getElementById("proteinPerPortion").value);
+    const packageSize = parseFloat(document.getElementById("packageSize").value);
+    const price = parseFloat(document.getElementById("price").value);
+
+    if (!food || !portionSize || !proteinPerPortion || !packageSize || !price) return;
+
+    const totalProtein = (packageSize / portionSize) * proteinPerPortion;
+    const costPerGram = price / totalProtein;
+
+    foods.push({
+        food,
+        totalProtein,
+        costPerGram
+    });
+
+    save();
+    render();
+
+    document.querySelectorAll("input").forEach(i => i.value = "");
+}
+
+function render() {
+    foods.sort((a,b) => a.costPerGram - b.costPerGram);
+
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+
+    foods.forEach((f, i) => {
+        const row = document.createElement("tr");
+        if (i === 0) row.classList.add("cheapest");
+
+        row.innerHTML = `
+            <td>${f.food}</td>
+            <td>${f.totalProtein.toFixed(1)}g</td>
+            <td>$${f.costPerGram.toFixed(3)}</td>
+        `;
+        list.appendChild(row);
+    });
+}
+
+render();
+</script>
+
+</body>
+</html>
